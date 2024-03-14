@@ -17,6 +17,9 @@ export PYTHONPATH="$PYTHONPATH:$(pwd)"
 ```
 
 ## Run Experiments
+
+Note: For a complete list of D4RL tasks, see [here](https://github.com/Farama-Foundation/d4rl/wiki/Tasks).
+
 You can run SAQ-CQL experiments using the following command:
 ```
 python -m vqn.vqn_main \

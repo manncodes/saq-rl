@@ -36,14 +36,14 @@ For a complete list of D4RL tasks, see [here](https://github.com/Farama-Foundati
 **SAQ-BC** experiments can be run with the following command:
 
 ```bash
-python -m vqn.vqn_main --env 'halfcheetah-medium-v2' --bc_epochs=1000 --logging.output_dir './experiment_output'
+python -m vqn.vqn_main --env 'halfcheetah-expert-v2' --bc_epochs=1000 --logging.output_dir './experiment_output'
 ```
 - All SAQ-BC command options can be found in `vqn/vqn_main.py` and `vqn/vqn.py`.
 
 **SAQ-CQL** experiments can be run with the following command:
 
 ```bash
-python -m vqn.vqn_main --env 'halfcheetah-medium-v2' --logging.output_dir './experiment_output'
+python -m vqn.vqn_main --env 'halfcheetah-expert-v2' --logging.output_dir './experiment_output'
 ```
 - All SAQ-CQL command options can be found in `vqn/vqn_main.py` and `vqn/vqn.py`.
 
@@ -51,7 +51,7 @@ python -m vqn.vqn_main --env 'halfcheetah-medium-v2' --logging.output_dir './exp
 **SAQ-IQL** experiments can be run with the following command:
 
 ```bash
-python -m vqn.vqiql_main --env 'halfcheetah-medium-v2' --logging.output_dir './experiment_output'
+python -m vqn.vqiql_main --env 'halfcheetah-expert-v2' --logging.output_dir './experiment_output'
 ```
 - All SAQ-IQL command options can be found in `vqn/vqiql_main.py` and `vqn/vqiql.py`.
 
@@ -74,7 +74,7 @@ export WANDB_API_KEY='YOUR W&B API KEY HERE'
 Then, you can run experiments with W&B logging turned on:
 
 ```bash
-python -m vqn.conservative_sac_main --env 'halfcheetah-medium-v2' --logging.output_dir './experiment_output' --logging.online
+python -m vqn.conservative_sac_main --env 'halfcheetah-expert-v2' --logging.output_dir './experiment_output' --logging.online
 ```
 
 ## Example Runs

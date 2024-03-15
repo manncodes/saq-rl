@@ -9,11 +9,11 @@ export N_GPUS=$(nvidia-smi -L | wc -l)
 export N_JOBS=6
 
 
-EXP_NAME='vqbc_gym'
+EXP_NAME='BC'
 OUTPUT_DIR="./experiment_output"
 
 parallel -j $N_JOBS --linebuffer --delay 3 \
-    'CUDA_VISIBLE_DEVICES=$(({%} % $N_GPUS)) 'python3.8 -m vqn.vqn_main \
+    python -m vqn.vqn_main \
             --seed={1}  \
             --env='{2}-{3}-v2' \
             --max_traj_length 1000 \
@@ -28,8 +28,8 @@ parallel -j $N_JOBS --linebuffer --delay 3 \
             --vqn.qf_arch={6} \
             --logging.output_dir="$OUTPUT_DIR/$EXP_NAME" \
             --logging.online=True \
-            --logging.prefix='VQN' \
-            --logging.entity '' \
+            --logging.prefix='SAQ' \
+            --logging.entity 'jonzamora' \
             --logging.project="$EXP_NAME" \
             --logging.random_delay=3.0 \
         ::: 24 42 43 \

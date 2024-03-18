@@ -43,14 +43,10 @@ class WandBLogger(object):
     def get_default_config(updates=None):
         config = ConfigDict()
         config.online = False
-
-        ## CHANGE THIS INFO DEPENDING ON YOUR RUNS
         config.prefix = 'SAQ'
-        config.project = 'BC'
-        config.experiment_id = f"{config.prefix}-{config.project}-{uuid.uuid4().hex}"
-        config.output_dir = f'/tmp/{config.prefix}-{config.project}'
-        ## END CHANGE
-
+        config.project = ''
+        config.output_dir = f'/tmp/{config.prefix}'
+        config.experiment_id = config_dict.placeholder(str)
         config.random_delay = 0.0
         config.anonymous = config_dict.placeholder(str)
         config.notes = config_dict.placeholder(str)
@@ -63,11 +59,11 @@ class WandBLogger(object):
     def __init__(self, config, variant):
         self.config = self.get_default_config(config)
 
-        if self.config.experiment_id is None:
-            self.config.experiment_id = uuid.uuid4().hex
-
         if self.config.prefix != '':
             self.config.project = '{}-{}'.format(self.config.prefix, self.config.project)
+
+        if self.config.experiment_id is None:
+            self.config.experiment_id = f"{self.config.project}-{uuid.uuid4().hex}"
 
         if self.config.output_dir == '':
             self.config.output_dir = tempfile.mkdtemp()

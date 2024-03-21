@@ -10,7 +10,7 @@ env="halfcheetah-expert-v2"
 vqvae_n_epochs=500  # Number of VQ-VAE epochs
 bc_epochs=1001  # Number of BC epochs
 dqn_n_epochs=1000 # Number of DQN epochs
-max_traj_length=1000  # Maximum trajectory length
+max_traj_length=1000  # Maximum trajectory length (1000 for Locomotion Antmaze Kitchen, 200 for Adroit Door Hammer Relocate, 100 for Adroit Pen)
 eval_period=50  # Evaluation period
 n_train_step_per_epoch=1000  # Number of training steps per epoch
 

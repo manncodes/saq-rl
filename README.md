@@ -5,6 +5,8 @@ A simple and modular implementation of the SAQ algorithm in Jax and Flax.
 
 For more information, visit the website at https://saqrl.github.io
 
+For a detailed plan of experiments, visit our Notion site [here](https://jonzamora.notion.site/SAQ-Action-Quantized-Offline-Reinforcement-Learning-for-Robotic-Skill-Learning-1aa159ec76524456961412d2560f1770)
+
 
 ## Installation
 

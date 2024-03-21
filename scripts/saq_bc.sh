@@ -13,13 +13,13 @@ dqn_n_epochs=1000 # Number of DQN epochs
 max_traj_length=1000  # Maximum trajectory length (1000 for Locomotion Antmaze Kitchen, 200 for Adroit Door Hammer Relocate, 100 for Adroit Pen)
 eval_period=50  # Evaluation period
 n_train_step_per_epoch=1000  # Number of training steps per epoch
+seed=24  # Random seed
 
-# VQ-BC parameters
+# SAQ parameters
 vqn_cql_min_q_weight=0  # CQL minimum Q weight
 vqn_qf_weight_decay=1e-3  # QF weight decay
 vqn_codebook_size=32  # Codebook size (can try 32, 64, 128)
 vqn_qf_arch="256-256"  # QF architecture
-seed=24  # Random seed
 
 # Logging parameters
 output_dir="./results"  # Output directory for results

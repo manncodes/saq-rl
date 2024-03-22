@@ -10,7 +10,7 @@ For a detailed plan of experiments, visit our Notion site [here](https://jonzamo
 
 ## Installation
 
-1. Install the provided Conda environment (I recommend you use [Mamba](https://github.com/conda-forge/miniforge) instead of Conda -- Mamba is faster)
+First, install the provided Conda environment (I recommend you use [Mamba](https://github.com/conda-forge/miniforge) instead of Conda -- Mamba is faster)
 
 Note: `mamba` and `conda` commands are interchangeable.
 
@@ -22,7 +22,7 @@ mamba activate saq
 To install MuJoCo 210 on your Linux machine, follow the instructions from [this](https://gist.github.com/saratrajput/60b1310fe9d9df664f9983b38b50d5da) Github Gist.
 
 
-2. Add this repo directory to your `PYTHONPATH` environment variable in your `~/.bashrc`.
+Then, add this repo directory to your `PYTHONPATH` environment variable in your `~/.bashrc`.
 
 Note: Your directory will be different. Use `pwd` to get the directory for this repo.
 
@@ -31,21 +31,39 @@ Note: Your directory will be different. Use `pwd` to get the directory for this 
 export PYTHONPATH="$PYTHONPATH:/home/jonzamora/Desktop/projects/saq-rl"
 ```
 
-## Run Experiments
+## Weights and Biases
+
+This codebase logs experiment results to [Weights and Biases](https://wandb.ai/site).
+
+To log to W&B, you need to set your W&B API key environment variable in your `~/.bashrc`:
+
+```bash
+export WANDB_API_KEY='YOUR W&B API KEY HERE'
+```
+
+Prior to running experiments, update the `logging_entity` field in all `.sh` files under `scripts` to be your Weights and Biases username.
+
+## Tasks
+
+This repository supports environments in D4RL(https://arxiv.org/abs/2004.07219) and Robomimic(https://arxiv.org/abs/2108.03298).
 
 For a complete list of D4RL tasks, see [here](https://github.com/Farama-Foundation/d4rl/wiki/Tasks).
+
+To install Robomimic and download the Robomimic datasets, visit https://robomimic.github.io/docs/datasets/robomimic_v0.1.html#downloading.
+
+## Run Experiments
 
 **SAQ-BC** experiments can be run with the following command:
 
 ```bash
-python -m vqn.vqn_main --env 'halfcheetah-expert-v2' --bc_epochs=1000 --logging.output_dir './experiment_output'
+bash scripts/saq_bc.sh
 ```
 - All SAQ-BC command options can be found in `vqn/vqn_main.py` and `vqn/vqn.py`.
 
 **SAQ-CQL** experiments can be run with the following command:
 
 ```bash
-python -m vqn.vqn_main --env 'halfcheetah-expert-v2' --logging.output_dir './experiment_output'
+bash scripts/saq_cql.sh
 ```
 - All SAQ-CQL command options can be found in `vqn/vqn_main.py` and `vqn/vqn.py`.
 
@@ -53,31 +71,9 @@ python -m vqn.vqn_main --env 'halfcheetah-expert-v2' --logging.output_dir './exp
 **SAQ-IQL** experiments can be run with the following command:
 
 ```bash
-python -m vqn.vqiql_main --env 'halfcheetah-expert-v2' --logging.output_dir './experiment_output'
+bash scripts/saq_iql.sh
 ```
 - All SAQ-IQL command options can be found in `vqn/vqiql_main.py` and `vqn/vqiql.py`.
-
-
-This repository supports environments in D4RL(https://arxiv.org/abs/2004.07219) and Robomimic(https://arxiv.org/abs/2108.03298).
-
-To install Robomimic and download the Robomimic datasets, visit https://robomimic.github.io/docs/datasets/robomimic_v0.1.html#downloading.
-
-
-## Weights and Biases
-
-This codebase logs experiment results to [Weights and Biases](https://wandb.ai/site). 
-
-To log to W&B, you first need to set your W&B API key environment variable in your `~/.bashrc`:
-
-```bash
-export WANDB_API_KEY='YOUR W&B API KEY HERE'
-```
-
-Then, you can run experiments with W&B logging turned on:
-
-```bash
-python -m vqn.conservative_sac_main --env 'halfcheetah-expert-v2' --logging.output_dir './experiment_output' --logging.online
-```
 
 ## Citation
 
@@ -97,3 +93,5 @@ If you found this code useful, consider citing the following paper:
 The implementation of SAQ-CQL builds on [CQL](https://github.com/young-geng/JaxCQL)
 
 The implementation of SAQ-IQL builds on [IQL](https://github.com/ikostrikov/implicit_q_learning)
+
+The implementation of Aquadem builds on [Aquadem](https://github.com/google-research/google-research/tree/master/aquadem)

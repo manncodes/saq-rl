@@ -11,6 +11,10 @@ run_saq_iql() {
 
 # Locomotion task
 locomotion_environments=(
+    "halfcheetah-expert-v2"
+    "halfcheetah-medium-expert-v2"
+    "halfcheetah-medium-replay-v2"
+    "halfcheetah-medium-v2"
     "hopper-expert-v2"
     "hopper-medium-expert-v2"
     "hopper-medium-replay-v2"
@@ -21,7 +25,7 @@ locomotion_environments=(
     "walker2d-medium-v2"
 )
 locomotion_max_traj_lengths=(
-    1000 1000 1000 1000 1000 1000 1000 1000
+    1000 1000 1000 1000 1000 1000 1000 1000 1000 1000 1000 1000
 )
 
 # Antmaze task

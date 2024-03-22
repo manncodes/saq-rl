@@ -56,14 +56,22 @@ To install Robomimic and download the Robomimic datasets, visit https://robomimi
 **SAQ-BC** experiments can be run with the following command:
 
 ```bash
+# For a single experiment
 bash scripts/saq_bc.sh
+
+# For a sweep of all experiments
+bash scripts/sweeps/sweep_bc.sh
 ```
 - All SAQ-BC command options can be found in `vqn/vqn_main.py` and `vqn/vqn.py`.
 
 **SAQ-CQL** experiments can be run with the following command:
 
 ```bash
+# For a single experiment
 bash scripts/saq_cql.sh
+
+# For a sweep of all experiments
+bash scripts/sweeps/sweep_cql.sh
 ```
 - All SAQ-CQL command options can be found in `vqn/vqn_main.py` and `vqn/vqn.py`.
 
@@ -71,7 +79,11 @@ bash scripts/saq_cql.sh
 **SAQ-IQL** experiments can be run with the following command:
 
 ```bash
+# For a single experiment
 bash scripts/saq_iql.sh
+
+# For a sweep of all experiments
+bash scripts/sweeps/sweep_iql.sh
 ```
 - All SAQ-IQL command options can be found in `vqn/vqiql_main.py` and `vqn/vqiql.py`.
 

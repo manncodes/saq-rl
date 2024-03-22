@@ -79,22 +79,6 @@ Then, you can run experiments with W&B logging turned on:
 python -m vqn.conservative_sac_main --env 'halfcheetah-expert-v2' --logging.output_dir './experiment_output' --logging.online
 ```
 
-## Example Runs
-
-For full working examples, you can run a sweep of **SAQ-CQL** on D4RL kitchen or **SAQ-IQL** on D4RL adroit using the following command:
-
-```bash
-bash scripts/vqcql_kitchen.sh
-bash scripts/vqiql_adroit.sh
-```
-
-These scripts will generate the plots below.
-
-<img src="./plots/saqcql_kitchen.png" width="60%" style="text-align:center;"/>
-
-<img src="./plots/saqiql_adroit.png" width="60%" style="text-align:center;"/>
-
-
 ## Citation
 
 If you found this code useful, consider citing the following paper:

@@ -17,10 +17,11 @@ Note: `mamba` and `conda` commands are interchangeable.
 ```bash
 mamba env create -f environment.yml
 mamba activate saq
+cd robomimic
+pip install -e .
 ```
 
 To install MuJoCo 210 on your Linux machine, follow the instructions from [this](https://gist.github.com/saratrajput/60b1310fe9d9df664f9983b38b50d5da) Github Gist.
-
 
 Then, add this repo directory to your `PYTHONPATH` environment variable in your `~/.bashrc`.
 

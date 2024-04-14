@@ -28,7 +28,6 @@ dependencies:
         - gym==0.23.1
         - absl-py
         - git+https://github.com/Farama-Foundation/D4RL.git@2b96431a0e9fd90c8032624b0dc3cd4514d15632
-        - git+https://github.com/ARISE-Initiative/robomimic@dde3a6e74886e0768cedf18f8f9c813d47d31ebd
         - git+https://github.com/ARISE-Initiative/robosuite@de64fa5935f9f30ce01b36a3ef1a3242060b9cdb
         - wandb
         - ml_collections

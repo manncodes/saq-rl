@@ -8,6 +8,8 @@ For more information, visit the website at https://saqrl.github.io
 For a detailed plan of experiments, visit our Notion site [here](https://jonzamora.notion.site/SAQ-Action-Quantized-Offline-Reinforcement-Learning-for-Robotic-Skill-Learning-1aa159ec76524456961412d2560f1770)
 
 
+Note: This is for `CSCI 566 - Deep Learning and its Applications` at USC (Spring 2024)
+
 ## Installation
 
 First, install the provided Conda environment (I recommend you use [Mamba](https://github.com/conda-forge/miniforge) instead of Conda -- Mamba is faster)

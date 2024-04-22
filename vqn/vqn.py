@@ -383,7 +383,6 @@ class VQN(object):
             return result_dict['loss'], result_dict
 
         grads, aux_values = grad_fn(train_state.params)
-        print("vqvae grads\n", grads)
         new_train_state = train_state.apply_gradients(grads=grads)
         metrics = collect_jax_metrics(
             aux_values,
@@ -507,7 +506,6 @@ class VQN(object):
             return loss, locals()
 
         grads, aux_values = grad_fn(qf_train_state.params)
-        print("dqn_grads", grads)
 
         new_target_params = jax.lax.cond(
             qf_train_state.step % self.config.target_update_period == self.config.target_update_period - 1,

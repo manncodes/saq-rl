@@ -506,7 +506,6 @@ class VQN(object):
             return loss, locals()
 
         grads, aux_values = grad_fn(qf_train_state.params)
-
         new_target_params = jax.lax.cond(
             qf_train_state.step % self.config.target_update_period == self.config.target_update_period - 1,
             lambda: qf_train_state.params,

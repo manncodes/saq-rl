@@ -562,7 +562,7 @@ class VQN(object):
         metrics.update(prefix_metrics(dqn_metrics, 'dqn'))
         return metrics
 
-    @partial(jax.jit, static_argnames=('self', ))
+    @partial(jax.jit, static_argnames=('self', 'bc'))
     def _both_train_step(self, rng, vqvae_train_state, qf_train_state, batch, bc=False):
         """
         We want to train both the VQ-VAE and the DQN in the same step.

@@ -98,20 +98,21 @@ def main(argv):
 
     dataset = make_dataset(dataset, FLAGS.env)
 
-    for vqvae_epoch in range(FLAGS.vqvae_n_epochs):
-        metrics = {'vqvae_epoch': vqvae_epoch}
+    # for vqvae_epoch in range(FLAGS.vqvae_n_epochs):
+    #     metrics = {'vqvae_epoch': vqvae_epoch}
 
+    #     for batch_idx in range(FLAGS.n_train_step_per_epoch):
+    #         batch = dataset.sample(FLAGS.batch_size)
+    #         metrics.update(prefix_metrics(vqn.train_vqvae(batch), 'vqvae'))
+        
+    #     wandb_logger.log(metrics)
+    #     pprint(metrics)
+
+    for dqn_epoch in range(FLAGS.dqn_n_epochs):
+        metrics = {'dqn_epoch': dqn_epoch, 'vqvae_epoch': dqn_epoch}
         for batch_idx in range(FLAGS.n_train_step_per_epoch):
             batch = dataset.sample(FLAGS.batch_size)
             metrics.update(prefix_metrics(vqn.train_vqvae(batch), 'vqvae'))
-        
-        wandb_logger.log(metrics)
-        pprint(metrics)
-
-    for dqn_epoch in range(FLAGS.dqn_n_epochs):
-        metrics = {'dqn_epoch': dqn_epoch}
-        for batch_idx in range(FLAGS.n_train_step_per_epoch):
-            batch = dataset.sample(FLAGS.batch_size)
             metrics.update(prefix_metrics(vqn.train_dqn(batch, bc=dqn_epoch < FLAGS.bc_epochs), 'dqn'))
 
         if dqn_epoch == 0 or (dqn_epoch + 1) % FLAGS.eval_period == 0:

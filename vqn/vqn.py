@@ -547,8 +547,7 @@ class VQN(object):
     def get_sampler_policy(self):
         return self._sampler_policy.update_params(
             self._qf_train_state.params, self._vqvae_train_state.params
-        )
-    
+        )    
 
     def train_both(self, batch, bc=False):
         self._vqvae_train_state, vqvae_metrics, self._qf_train_state, dqn_metrics = self._both_train_step(

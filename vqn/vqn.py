@@ -383,6 +383,7 @@ class VQN(object):
             return result_dict['loss'], result_dict
 
         grads, aux_values = grad_fn(train_state.params)
+        print("vqvae grads\n", grads)
         new_train_state = train_state.apply_gradients(grads=grads)
         metrics = collect_jax_metrics(
             aux_values,
@@ -506,6 +507,8 @@ class VQN(object):
             return loss, locals()
 
         grads, aux_values = grad_fn(qf_train_state.params)
+        print("dqn_grads", grads)
+
         new_target_params = jax.lax.cond(
             qf_train_state.step % self.config.target_update_period == self.config.target_update_period - 1,
             lambda: qf_train_state.params,
@@ -580,7 +583,8 @@ class VQN(object):
 
 
         @partial(jax.grad, has_aux=True)
-        def grad_fn(vqvae_params, qf_params):
+        def grad_fn(both_params):
+            vqvae_params, qf_params = both_params
             # Encode actions using the VQ-VAE
             reconstructed, vqvae_result_dict = self.vqvae.apply(
                 vqvae_params,
@@ -692,19 +696,10 @@ class VQN(object):
                 total_loss = vqvae_loss + bc_loss
 
             return total_loss, locals()
-      
 
-        combined_grad_fn = value_and_multi_grad(
-            grad_fn, n_outputs=1, argnums=(0, 1), has_aux=True
-        )
-
-        (total_loss, aux_values), (vqvae_grads, qf_grads) = combined_grad_fn(
-            vqvae_train_state.params, qf_train_state.params
-        )
-
-        new_vqvae_train_state = vqvae_train_state.apply_gradients(vqvae_grads)
-        new_qf_train_state = qf_train_state.apply_gradients(qf_grads)
-
+        (vq_grads,qf_grads), aux_values = grad_fn((vqvae_train_state.params, qf_train_state.params))
+        new_vqvae_train_state = vqvae_train_state.apply_gradients(grads=vq_grads)
+        new_qf_train_state = qf_train_state.apply_gradients(grads=qf_grads)
         new_target_params = jax.lax.cond(
             qf_train_state.step % self.config.target_update_period == self.config.target_update_period - 1,
             lambda: qf_train_state.params,

@@ -1,0 +1,120 @@
+
+# vqvae grads
+FrozenDict({
+    params: {
+        action_prior: {
+            Dense_0: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[17,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_1: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_2: {
+                bias: Traced<ShapedArray(float32[32])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,32])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+        },
+        decoder: {
+            Dense_0: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[145,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_1: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_2: {
+                bias: Traced<ShapedArray(float32[6])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,6])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+        },
+        encoder: {
+            Dense_0: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[23,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_1: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_2: {
+                bias: Traced<ShapedArray(float32[128])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,128])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+        },
+        vq: {
+            codebook: Traced<ShapedArray(float32[32,128])>with<DynamicJaxprTrace(level=0/1)>,
+        },
+    },
+})
+# dqn_grads 
+FrozenDict({
+    params: {
+        Dense_0: {
+            bias: Traced<ShapedArray(float32[256])>with<DynamicJaxprTrace(level=0/1)>,
+            kernel: Traced<ShapedArray(float32[17,256])>with<DynamicJaxprTrace(level=0/1)>,
+        },
+        Dense_1: {
+            bias: Traced<ShapedArray(float32[256])>with<DynamicJaxprTrace(level=0/1)>,
+            kernel: Traced<ShapedArray(float32[256,256])>with<DynamicJaxprTrace(level=0/1)>,
+        },
+        Dense_2: {
+            bias: Traced<ShapedArray(float32[32])>with<DynamicJaxprTrace(level=0/1)>,
+            kernel: Traced<ShapedArray(float32[256,32])>with<DynamicJaxprTrace(level=0/1)>,
+        },
+    },
+})
+
+
+# of combined
+FrozenDict({
+    params: {
+        action_prior: {
+            Dense_0: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[17,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_1: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_2: {
+                bias: Traced<ShapedArray(float32[32])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,32])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+        },
+        decoder: {
+            Dense_0: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[145,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_1: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_2: {
+                bias: Traced<ShapedArray(float32[6])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,6])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+        },
+        encoder: {
+            Dense_0: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[23,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_1: {
+                bias: Traced<ShapedArray(float32[512])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,512])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+            Dense_2: {
+                bias: Traced<ShapedArray(float32[128])>with<DynamicJaxprTrace(level=0/1)>,
+                kernel: Traced<ShapedArray(float32[512,128])>with<DynamicJaxprTrace(level=0/1)>,
+            },
+        },
+        vq: {
+            codebook: Traced<ShapedArray(float32[32,128])>with<DynamicJaxprTrace(level=0/1)>,
+        },
+    },
+})

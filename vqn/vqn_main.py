@@ -112,8 +112,9 @@ def main(argv):
         metrics = {'dqn_epoch': dqn_epoch, 'vqvae_epoch': dqn_epoch}
         for batch_idx in range(FLAGS.n_train_step_per_epoch):
             batch = dataset.sample(FLAGS.batch_size)
-            metrics.update(prefix_metrics(vqn.train_vqvae(batch), 'vqvae'))
-            metrics.update(prefix_metrics(vqn.train_dqn(batch, bc=dqn_epoch < FLAGS.bc_epochs), 'dqn'))
+            # metrics.update(prefix_metrics(vqn.train_vqvae(batch), 'vqvae'))
+            # metrics.update(prefix_metrics(vqn.train_dqn(batch, bc=dqn_epoch < FLAGS.bc_epochs), 'dqn'))
+            metrics.update(prefix_metrics(vqn.train_both(batch, bc=dqn_epoch < FLAGS.bc_epochs), 'both'))
 
         if dqn_epoch == 0 or (dqn_epoch + 1) % FLAGS.eval_period == 0:
             trajs = eval_sampler.sample(vqn.get_sampler_policy(), FLAGS.eval_n_trajs, deterministic=False)

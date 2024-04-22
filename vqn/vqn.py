@@ -550,9 +550,9 @@ class VQN(object):
         )
     
 
-    def train_both(self, batch):
+    def train_both(self, batch, bc=False):
         self._vqvae_train_state, vqvae_metrics, self._qf_train_state, dqn_metrics = self._both_train_step(
-            next_rng(), self._vqvae_train_state, self._qf_train_state, batch
+            next_rng(), self._vqvae_train_state, self._qf_train_state, batch, bc
         )
         self._vqvae_total_steps += 1
         self._dqn_total_steps += 1
@@ -563,7 +563,7 @@ class VQN(object):
         return metrics
 
     @partial(jax.jit, static_argnames=('self', ))
-    def _both_train_step(self, rng, vqvae_train_state, qf_train_state, batch):
+    def _both_train_step(self, rng, vqvae_train_state, qf_train_state, batch, bc=False):
         """
         We want to train both the VQ-VAE and the DQN in the same step.
         Without using the modular train methods both the VQ-VAE and DQN have.
@@ -687,6 +687,10 @@ class VQN(object):
 
             # Combine the VQ-VAE loss and the DQN loss
             total_loss = vqvae_loss + self.config.td_loss_weight * dqn_loss
+
+            if bc:
+                total_loss = vqvae_loss + bc_loss
+
             return total_loss, locals()
       
 

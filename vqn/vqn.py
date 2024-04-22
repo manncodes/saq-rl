@@ -695,7 +695,7 @@ class VQN(object):
             if bc:
                 total_loss = vqvae_loss + bc_loss
 
-            return total_loss, locals()
+            return total_loss, locals() | vqvae_result_dict
 
         (vq_grads,qf_grads), aux_values = grad_fn((vqvae_train_state.params, qf_train_state.params))
         new_vqvae_train_state = vqvae_train_state.apply_gradients(grads=vq_grads)
@@ -729,7 +729,7 @@ class VQN(object):
                 grads=qf_grads, target_params=new_target_params
             )
 
-        metrics = collect_jax_metrics(
+        qf_metrics = collect_jax_metrics(
             aux_values,
             ['total_loss', 'vqvae_loss', 'td_loss', 'current_actions_q_values', 'max_q_values', 'target_q_values',
              'advantage', 'td_target', 'cql_lse_q_values', 'cql_min_q_loss',
@@ -737,4 +737,10 @@ class VQN(object):
              'q_value_penalty_loss'],
         )
 
-        return new_vqvae_train_state, metrics, new_qf_train_state, metrics
+        vqvae_metrics = collect_jax_metrics(
+            aux_values,
+            ['total_loss', 'reconstruction_loss', 'quantizer_loss', 'e_latent_loss', 'q_latent_loss',
+             'entropy_loss', 'action_prior_loss', 'action_prior_accuracy'],
+        )
+
+        return new_vqvae_train_state, vqvae_metrics, new_qf_train_state, qf_metrics

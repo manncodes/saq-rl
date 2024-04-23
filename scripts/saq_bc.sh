@@ -49,4 +49,4 @@ python -m vqn.vqn_main \
 --logging.prefix=${logging_prefix} \
 --logging.entity=${logging_entity} \
 --logging.project=${logging_project} \
---logging.training_mode=${training_mode}
+--training_mode=${training_mode} \

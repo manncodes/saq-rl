@@ -21,6 +21,9 @@ vqn_qf_weight_decay=1e-3  # QF weight decay
 vqn_codebook_size=32  # Codebook size (can try 32, 64, 128)
 vqn_qf_arch="256-256"  # QF architecture
 
+# Training mode
+training_mode="joint" # [sequential, alternating, joint] 
+
 # Logging parameters
 output_dir="./results"  # Output directory for results
 logging_online=True  # Set to False to disable online logging
@@ -46,3 +49,4 @@ python -m vqn.vqn_main \
 --logging.prefix=${logging_prefix} \
 --logging.entity=${logging_entity} \
 --logging.project=${logging_project} \
+--logging.training_mode=${training_mode}

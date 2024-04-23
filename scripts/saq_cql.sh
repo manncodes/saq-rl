@@ -19,6 +19,9 @@ seed=24  # Random seed
 vqn_cql_min_q_weight=10  # VQN CQL min Q weight (can try 10, 15, 20, 30)
 vqn_qf_weight_decay=1e-3  # VQN Q-function weight decay
 
+# Training mode
+training_mode="joint" # [sequential, alternating, joint] 
+
 # Logging parameters
 output_dir="./results"  # Output directory for results
 logging_online=True  # Set to False to disable online logging
@@ -41,4 +44,5 @@ python -m vqn.vqn_main \
 --logging.online=${logging_online} \
 --logging.prefix=${logging_prefix} \
 --logging.entity=${logging_entity} \
---logging.project=${logging_project}
+--logging.project=${logging_project} \
+--training_mode=${training_mode} \

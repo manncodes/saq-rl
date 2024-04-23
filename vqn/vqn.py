@@ -547,5 +547,196 @@ class VQN(object):
     def get_sampler_policy(self):
         return self._sampler_policy.update_params(
             self._qf_train_state.params, self._vqvae_train_state.params
+        )    
+
+    def train_both(self, batch, bc=False):
+        self._vqvae_train_state, vqvae_metrics, self._qf_train_state, dqn_metrics = self._both_train_step(
+            next_rng(), self._vqvae_train_state, self._qf_train_state, batch, bc
+        )
+        self._vqvae_total_steps += 1
+        self._dqn_total_steps += 1
+        # combine metrics
+        metrics = dict()
+        metrics.update(prefix_metrics(vqvae_metrics, 'vqvae'))
+        metrics.update(prefix_metrics(dqn_metrics, 'dqn'))
+        return metrics
+
+    @partial(jax.jit, static_argnames=('self', 'bc'))
+    def _both_train_step(self, rng, vqvae_train_state, qf_train_state, batch, bc=False):
+        """
+        We want to train both the VQ-VAE and the DQN in the same step.
+        Without using the modular train methods both the VQ-VAE and DQN have.
+        This train step is called both because it trains both the VQ-VAE and the DQN using
+        a single loss function that combines the losses of both models.
+        so we have to make a single grad_fn that computes the gradient for both models.
+        """
+        observations = batch['observations']
+        original_actions = batch['actions']
+        rewards = batch['rewards']
+        next_observations = batch['next_observations']
+        dones = batch['dones']
+        rng_generator = JaxRNG(rng)
+
+
+        @partial(jax.grad, has_aux=True)
+        def grad_fn(both_params):
+            vqvae_params, qf_params = both_params
+            # Encode actions using the VQ-VAE
+            reconstructed, vqvae_result_dict = self.vqvae.apply(
+                vqvae_params,
+                observations,
+                original_actions,
+                train=True,
+            )
+            actions = self.vqvae.apply(
+                vqvae_params,
+                observations,
+                original_actions,
+                method=self.vqvae.encode
+            )
+
+            vqvae_loss = vqvae_result_dict['loss']
+
+            def select_by_action(q_vals, actions):
+                return jnp.squeeze(
+                    jnp.take_along_axis(
+                        q_vals, jnp.expand_dims(actions, -1), axis=-1
+                    ),
+                    axis=-1
+                )
+            
+            def select_actions(params, observations):
+                q_values = self.qf.apply(params, observations)
+                action_priors = jax.nn.softmax(
+                    self.vqvae.apply(
+                        vqvae_params,
+                        observations,
+                        method=self.vqvae.action_prior_logits
+                    ),
+                    axis=-1
+                )
+                action_selection_threshold = jnp.minimum(
+                    jnp.amax(action_priors, axis=-1, keepdims=True),
+                    self.config.action_selection_threshold
+                )
+                action_mask = (
+                    action_priors >= action_selection_threshold
+                ).astype(jnp.float32)
+                masked_q_values = (
+                    action_mask * q_values + (1.0 - action_mask) * jnp.min(q_values)
+                )
+                return jnp.argmax(masked_q_values, axis=-1)
+            
+            q_values = self.qf.apply(qf_params, observations)
+            current_actions_q_values = select_by_action(q_values, actions)
+            next_q_values = self.qf.apply(qf_params, next_observations)
+            next_actions = select_actions(qf_params, next_observations)
+            target_q_values = select_by_action(next_q_values, next_actions)
+
+            td_target = rewards + (1. - dones) * self.config.discount * target_q_values
+
+            # DQN loss
+            td_loss = mse_loss(current_actions_q_values, jax.lax.stop_gradient(td_target)) # TD means temporal difference
+            dqn_loss = self.config.td_loss_weight * td_loss
+
+            current_actions = jnp.argmax(q_values, axis=-1)
+            max_q_values = jnp.max(q_values, axis=-1)
+            advantage = max_q_values - current_actions_q_values
+
+            policy_dataset_aggrement_rate = jnp.mean(current_actions == actions)
+            reconstructed_current_actions = self.vqvae.apply(
+                vqvae_params,
+                observations,
+                current_actions,
+                method=self.vqvae.decode
+            )
+
+            current_action_mse = jnp.sum(
+                jnp.square(reconstructed_current_actions - original_actions),
+                axis=-1
+            ).mean()
+
+            # BC loss
+            bc_loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(q_values, actions)) # BC means behavioral cloning
+            dqn_loss = dqn_loss + self.config.bc_loss_weight * bc_loss
+
+            # CQL loss
+            cql_lse_q_values = self.config.cql_temp * jax.scipy.special.logsumexp(
+                q_values / self.config.cql_temp, axis=-1
+            ) # CQL means conservative Q-learning
+            cql_min_q_loss = jnp.mean(cql_lse_q_values - current_actions_q_values)
+            dqn_loss = dqn_loss + self.config.cql_min_q_weight * cql_min_q_loss
+
+            # Q value penalty loss
+            if self.config.q_value_penalty_aggregation == 'none':
+                aggregated_q_values = q_values
+            elif self.config.q_value_penalty_aggregation == 'mean':
+                aggregated_q_values = jnp.mean(q_values)
+            else:
+                raise ValueError('Unsupport value penalty aggregation type!')
+            
+            if self.config.q_value_penalty_type == 'l1':
+                q_value_penalty_loss = jnp.mean(jnp.abs(aggregated_q_values))
+            elif self.config.q_value_penalty_type == 'l2':
+                q_value_penalty_loss = jnp.mean(jnp.square(aggregated_q_values))
+            else:
+                raise ValueError('Unsupport value penalty type!')
+            
+            # Add the Q value penalty loss to the DQN loss
+            dqn_loss = dqn_loss + self.config.q_value_penalty_weight * q_value_penalty_loss
+
+            # Combine the VQ-VAE loss and the DQN loss
+            total_loss = vqvae_loss + self.config.td_loss_weight * dqn_loss
+
+            if bc:
+                total_loss = vqvae_loss + bc_loss
+
+            return total_loss, locals() | vqvae_result_dict
+
+        (vq_grads,qf_grads), aux_values = grad_fn((vqvae_train_state.params, qf_train_state.params))
+        new_vqvae_train_state = vqvae_train_state.apply_gradients(grads=vq_grads)
+        new_qf_train_state = qf_train_state.apply_gradients(grads=qf_grads)
+        new_target_params = jax.lax.cond(
+            qf_train_state.step % self.config.target_update_period == self.config.target_update_period - 1,
+            lambda: qf_train_state.params,
+            lambda: qf_train_state.target_params,
         )
 
+        if self.config.reset_qf:
+            def reset_qf_params():
+                qf_params = self.qf.init(
+                    rng_generator(self.qf.rng_keys()),
+                    jnp.zeros((1, self.observation_dim)),
+                )
+                return DQNTrainState.create(
+                    params=qf_params,
+                    target_params=new_target_params,
+                    tx=self._qf_optimizer,
+                    apply_fn=None,
+                )
+
+            new_qf_train_state = jax.lax.cond(
+                qf_train_state.step % self.config.target_update_period == self.config.target_update_period - 1,
+                reset_qf_params,
+                lambda: qf_train_state.apply_gradients(grads=qf_grads, target_params=new_target_params)
+            )
+        else:
+            new_qf_train_state = qf_train_state.apply_gradients(
+                grads=qf_grads, target_params=new_target_params
+            )
+
+        qf_metrics = collect_jax_metrics(
+            aux_values,
+            ['total_loss', 'vqvae_loss', 'td_loss', 'current_actions_q_values', 'max_q_values', 'target_q_values',
+             'advantage', 'td_target', 'cql_lse_q_values', 'cql_min_q_loss',
+             'policy_dataset_aggrement_rate', 'bc_loss', 'current_action_mse',
+             'q_value_penalty_loss'],
+        )
+
+        vqvae_metrics = collect_jax_metrics(
+            aux_values,
+            ['total_loss', 'reconstruction_loss', 'quantizer_loss', 'e_latent_loss', 'q_latent_loss',
+             'entropy_loss', 'action_prior_loss', 'action_prior_accuracy'],
+        )
+
+        return new_vqvae_train_state, vqvae_metrics, new_qf_train_state, qf_metrics

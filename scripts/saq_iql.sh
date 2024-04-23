@@ -25,6 +25,8 @@ iql_expectile=0.8  # IQL expectile (can try 0.8, 0.9, 0.7)
 iql_temperature=1  # IQL temperature (can try 1, 0.5, 2)
 kl_divergence_weight=0  # KL divergence weight
 
+# Training mode
+training_mode="joint" # [sequential, alternating, joint] 
 
 # Logging parameters
 output_dir="./results"  # Output directory for results
@@ -54,4 +56,5 @@ python -m vqn.vqiql_main \
 --logging.online=${logging_online} \
 --logging.prefix=${logging_prefix} \
 --logging.entity=${logging_entity} \
---logging.project=${logging_project}
+--logging.project=${logging_project} \
+--training_mode=${training_mode} \

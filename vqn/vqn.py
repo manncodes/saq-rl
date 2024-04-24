@@ -283,7 +283,7 @@ class VQN(object):
         config.qf_lr = 3e-4
         config.target_update_period = 200
         config.reset_qf = False
-        config.td_loss_weight = 1.0
+        config.td_loss_weight = 0.5
 
         config.bc_loss_weight = 0.0
 
@@ -692,21 +692,26 @@ class VQN(object):
                 total_loss = vqvae_loss + bc_loss
 
             return total_loss, locals() | vqvae_result_dict
-
+        
         def clip_grads(grads, max_norm):
             """Clips gradients by global norm."""
-            total_norm = jnp.sqrt(
-                sum(jnp.sum(jnp.square(g)) for g in jax.tree_leaves(grads))
-            )
+            total_norm = jnp.sqrt(sum([jnp.sum(jnp.square(g)) for g in jax.tree_leaves(grads)]))
             clip_coeff = max_norm / (total_norm + 1e-6)
-            if clip_coeff < 1:
-                grads = jax.tree_map(lambda g: g * clip_coeff, grads)
-            return grads
+
+            # Use jax.lax.cond to handle conditionals in a JAX-compatible way
+            def true_fun(g):
+                return jax.tree_map(lambda x: x * clip_coeff, g)
+            
+            def false_fun(g):
+                return g
+
+            # Conditional clipping
+            return jax.lax.cond(clip_coeff < 1, true_fun, false_fun, grads)
 
 
         (vq_grads,qf_grads), aux_values = grad_fn((vqvae_train_state.params, qf_train_state.params))
-        vq_grads = clip_grads(vq_grads, 3)
-        qf_grads = clip_grads(qf_grads, 3)
+        # vq_grads = clip_grads(vq_grads, 3)
+        # qf_grads = clip_grads(qf_grads, 3)
 
         new_vqvae_train_state = vqvae_train_state.apply_gradients(grads=vq_grads)
         new_qf_train_state = qf_train_state.apply_gradients(grads=qf_grads)

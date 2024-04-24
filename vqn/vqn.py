@@ -283,7 +283,7 @@ class VQN(object):
         config.qf_lr = 3e-4
         config.target_update_period = 200
         config.reset_qf = False
-        config.td_loss_weight = 0.5
+        config.td_loss_weight = 1.0
 
         config.bc_loss_weight = 0.0
 
@@ -547,7 +547,8 @@ class VQN(object):
     def get_sampler_policy(self):
         return self._sampler_policy.update_params(
             self._qf_train_state.params, self._vqvae_train_state.params
-        )    
+        )
+    
 
     def train_both(self, batch, bc=False):
         self._vqvae_train_state, vqvae_metrics, self._qf_train_state, dqn_metrics = self._both_train_step(
@@ -626,7 +627,7 @@ class VQN(object):
                     action_mask * q_values + (1.0 - action_mask) * jnp.min(q_values)
                 )
                 return jnp.argmax(masked_q_values, axis=-1)
-
+            
             q_values = self.qf.apply(qf_params, observations)
             current_actions_q_values = select_by_action(q_values, actions)
             next_q_values = self.qf.apply(qf_params, next_observations)
@@ -674,14 +675,14 @@ class VQN(object):
                 aggregated_q_values = jnp.mean(q_values)
             else:
                 raise ValueError('Unsupport value penalty aggregation type!')
-
+            
             if self.config.q_value_penalty_type == 'l1':
                 q_value_penalty_loss = jnp.mean(jnp.abs(aggregated_q_values))
             elif self.config.q_value_penalty_type == 'l2':
                 q_value_penalty_loss = jnp.mean(jnp.square(aggregated_q_values))
             else:
                 raise ValueError('Unsupport value penalty type!')
-
+            
             # Add the Q value penalty loss to the DQN loss
             dqn_loss = dqn_loss + self.config.q_value_penalty_weight * q_value_penalty_loss
 
@@ -692,27 +693,8 @@ class VQN(object):
                 total_loss = vqvae_loss + bc_loss
 
             return total_loss, locals() | vqvae_result_dict
-        
-        def clip_grads(grads, max_norm):
-            """Clips gradients by global norm."""
-            total_norm = jnp.sqrt(sum([jnp.sum(jnp.square(g)) for g in jax.tree_leaves(grads)]))
-            clip_coeff = max_norm / (total_norm + 1e-6)
-
-            # Use jax.lax.cond to handle conditionals in a JAX-compatible way
-            def true_fun(g):
-                return jax.tree_map(lambda x: x * clip_coeff, g)
-            
-            def false_fun(g):
-                return g
-
-            # Conditional clipping
-            return jax.lax.cond(clip_coeff < 1, true_fun, false_fun, grads)
-
 
         (vq_grads,qf_grads), aux_values = grad_fn((vqvae_train_state.params, qf_train_state.params))
-        # vq_grads = clip_grads(vq_grads, 3)
-        # qf_grads = clip_grads(qf_grads, 3)
-
         new_vqvae_train_state = vqvae_train_state.apply_gradients(grads=vq_grads)
         new_qf_train_state = qf_train_state.apply_gradients(grads=qf_grads)
         new_target_params = jax.lax.cond(

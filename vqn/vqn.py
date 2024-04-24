@@ -604,7 +604,7 @@ class VQN(object):
                     ),
                     axis=-1
                 )
-
+            
             def select_actions(params, observations):
                 q_values = self.qf.apply(params, observations)
                 action_priors = jax.nn.softmax(

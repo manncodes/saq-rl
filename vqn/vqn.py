@@ -557,7 +557,7 @@ class VQN(object):
         self._vqvae_total_steps += 1
         self._dqn_total_steps += 1
         # combine metrics
-        metrics = dict()
+        metrics = {}
         metrics.update(prefix_metrics(vqvae_metrics, 'vqvae'))
         metrics.update(prefix_metrics(dqn_metrics, 'dqn'))
         return metrics
@@ -716,9 +716,13 @@ class VQN(object):
             return jax.lax.cond(clip_coeff < 1, true_fun, false_fun, grads)
 
         (vq_grads,qf_grads), aux_values = grad_fn((vqvae_train_state.params, qf_train_state.params))
-        vq_grads = clip_grads(vq_grads, 1.0)
-        qf_grads = clip_grads(qf_grads, 1.0)
-
+        # vq_grads = clip_grads(vq_grads, 1.0)
+        # qf_grads = clip_grads(qf_grads, 1.0)
+        if qf_train_state.step % 100 == 0:
+            # we log codebook 
+            codebook = self.vqvae.vq.get_codebook()
+            aux_values['codebook'] = codebook
+            
         new_vqvae_train_state = vqvae_train_state.apply_gradients(grads=vq_grads)
         new_qf_train_state = qf_train_state.apply_gradients(grads=qf_grads)
         new_target_params = jax.lax.cond(

@@ -101,6 +101,7 @@ class WandBLogger(object):
     def save_pickle(self, obj, filename):
         with open(os.path.join(self.config.output_dir, filename), 'wb') as fout:
             pickle.dump(obj, fout)
+            self.run.log_artifact(filename)
 
     @property
     def experiment_id(self):

@@ -1,6 +1,9 @@
+import json
 from typing import Callable, Optional, Any
 from functools import partial
 from copy import deepcopy
+
+import wandb
 
 from ml_collections import ConfigDict
 import numpy as np
@@ -17,7 +20,7 @@ from .jax_utils import (
     collect_jax_metrics
 )
 from .model import FullyConnectedNetwork, update_target_network
-from .utils import prefix_metrics
+from .utils import WandBLogger, prefix_metrics
 
 
 def squared_euclidean_distance(a, b, b2=None, precision=None):
@@ -171,7 +174,7 @@ class ActionVQVAE(nn.Module):
         quantized, vq_result_dict = self.vq(encoded_embeddings, train=train)
         decoder_input = jnp.concatenate([observations, quantized], axis=-1)
         reconstructed = self.decoder(decoder_input)
-
+        codebook = self.vq.get_codebook()
         if self.reconstruction_loss_type == 'l1':
             reconstruction_loss = jnp.sum(jnp.abs(reconstructed - actions), axis=-1).mean()
         elif self.reconstruction_loss_type == 'l2':
@@ -196,6 +199,7 @@ class ActionVQVAE(nn.Module):
             reconstruction_loss=reconstruction_loss,
             action_prior_loss=action_prior_loss,
             action_prior_accuracy=action_prior_accuracy,
+            codebook=codebook,
             **vq_result_dict,
         )
         result_dict['loss'] = loss
@@ -220,8 +224,6 @@ class ActionVQVAE(nn.Module):
     def action_prior_logits(self, observations):
         return self.action_prior(observations)
     
-    def get_codebook(self):
-        return self.vq.get_codebook()
 
     @nn.nowrap
     def rng_keys(self):
@@ -554,7 +556,7 @@ class VQN(object):
     
 
     def train_both(self, batch, bc=False):
-        self._vqvae_train_state, vqvae_metrics, self._qf_train_state, dqn_metrics = self._both_train_step(
+        self._vqvae_train_state, vqvae_metrics, self._qf_train_state, dqn_metrics, codebook = self._both_train_step(
             next_rng(), self._vqvae_train_state, self._qf_train_state, batch, bc
         )
         self._vqvae_total_steps += 1
@@ -563,7 +565,7 @@ class VQN(object):
         metrics = {}
         metrics.update(prefix_metrics(vqvae_metrics, 'vqvae'))
         metrics.update(prefix_metrics(dqn_metrics, 'dqn'))
-        return metrics
+        return metrics, codebook
 
     @partial(jax.jit, static_argnames=('self', 'bc'))
     def _both_train_step(self, rng, vqvae_train_state, qf_train_state, batch, bc=False):
@@ -599,15 +601,8 @@ class VQN(object):
                 method=self.vqvae.encode
             )
 
-            codebook = self.vqvae.apply(
-                vqvae_params,
-                # size: (self.codebook_size, embedding_dim)
-                jnp.zeros((1, self.observation_dim)),
-                jnp.zeros((1, self.action_dim)),
-                method=self.vqvae.get_codebook
-            )
-
             vqvae_loss = vqvae_result_dict['loss']
+            codebook = vqvae_result_dict['codebook']
 
             def select_by_action(q_vals, actions):
                 return jnp.squeeze(
@@ -727,8 +722,8 @@ class VQN(object):
             return jax.lax.cond(clip_coeff < 1, true_fun, false_fun, grads)
 
         (vq_grads,qf_grads), aux_values = grad_fn((vqvae_train_state.params, qf_train_state.params))
-        # vq_grads = clip_grads(vq_grads, 1.0)
-        # qf_grads = clip_grads(qf_grads, 1.0)
+        vq_grads = clip_grads(vq_grads, 1.0)
+        qf_grads = clip_grads(qf_grads, 1.0)
         
     
         new_vqvae_train_state = vqvae_train_state.apply_gradients(grads=vq_grads)
@@ -773,7 +768,6 @@ class VQN(object):
         vqvae_metrics = collect_jax_metrics(
             aux_values,
             ['total_loss', 'reconstruction_loss', 'quantizer_loss', 'e_latent_loss', 'q_latent_loss',
-             'entropy_loss', 'action_prior_loss', 'action_prior_accuracy', 'codebook'],
+             'entropy_loss', 'action_prior_loss', 'action_prior_accuracy'],
         )
-
-        return new_vqvae_train_state, vqvae_metrics, new_qf_train_state, qf_metrics
+        return new_vqvae_train_state, vqvae_metrics, new_qf_train_state, qf_metrics, aux_values['codebook']

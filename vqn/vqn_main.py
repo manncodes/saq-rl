@@ -119,7 +119,10 @@ def main(argv):
             if FLAGS.training_mode == "sequential" or FLAGS.training_mode == "alternating":
                 metrics.update(prefix_metrics(vqn.train_dqn(batch, bc=dqn_epoch < FLAGS.bc_epochs), 'dqn'))
             elif FLAGS.training_mode == "joint":
-                metrics.update(prefix_metrics(vqn.train_both(batch, bc=dqn_epoch < FLAGS.bc_epochs), 'both'))
+                # metrics.update(prefix_metrics(vqn.train_both(batch, bc=dqn_epoch < FLAGS.bc_epochs), 'both'))
+                metrics, codebook = vqn.train_both(batch, bc=dqn_epoch < FLAGS.bc_epochs)
+                metrics.update(prefix_metrics(metrics, 'both'))
+                wandb_logger.save_pickle(codebook, f'codebook_{batch_idx}_{dqn_epoch}.pkl')
 
         if dqn_epoch == 0 or (dqn_epoch + 1) % FLAGS.eval_period == 0:
             trajs = eval_sampler.sample(vqn.get_sampler_policy(), FLAGS.eval_n_trajs, deterministic=False)

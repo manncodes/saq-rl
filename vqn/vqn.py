@@ -718,11 +718,17 @@ class VQN(object):
         (vq_grads,qf_grads), aux_values = grad_fn((vqvae_train_state.params, qf_train_state.params))
         # vq_grads = clip_grads(vq_grads, 1.0)
         # qf_grads = clip_grads(qf_grads, 1.0)
-        if qf_train_state.step % 100 == 0:
-            # we log codebook 
-            codebook = self.vqvae.vq.get_codebook()
-            aux_values['codebook'] = codebook
-            
+        
+        # now we want to log the codebook
+        codebook = self.vqvae.apply(
+            vqvae_train_state.params,
+            jnp.zeros((1, self.observation_dim)),
+            jnp.zeros((1, self.action_dim)),
+            method=self.vqvae.vq.get_codebook
+        )
+        aux_values['codebook'] = codebook
+
+
         new_vqvae_train_state = vqvae_train_state.apply_gradients(grads=vq_grads)
         new_qf_train_state = qf_train_state.apply_gradients(grads=qf_grads)
         new_target_params = jax.lax.cond(

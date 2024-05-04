@@ -596,6 +596,13 @@ class VQN(object):
                 method=self.vqvae.encode
             )
 
+            codebook = self.vqvae.apply(
+                vqvae_params,
+                jnp.zeros((1, self.observation_dim)),
+                jnp.zeros((1, self.action_dim)),
+                method=self.vqvae.vq.get_codebook
+            )
+
             vqvae_loss = vqvae_result_dict['loss']
 
             def select_by_action(q_vals, actions):
@@ -719,16 +726,7 @@ class VQN(object):
         # vq_grads = clip_grads(vq_grads, 1.0)
         # qf_grads = clip_grads(qf_grads, 1.0)
         
-        # now we want to log the codebook
-        codebook = self.vqvae.apply(
-            vqvae_train_state.params,
-            jnp.zeros((1, self.observation_dim)),
-            jnp.zeros((1, self.action_dim)),
-            method=self.vqvae.vq.get_codebook
-        )
-        aux_values['codebook'] = codebook
-
-
+    
         new_vqvae_train_state = vqvae_train_state.apply_gradients(grads=vq_grads)
         new_qf_train_state = qf_train_state.apply_gradients(grads=qf_grads)
         new_target_params = jax.lax.cond(
@@ -771,7 +769,7 @@ class VQN(object):
         vqvae_metrics = collect_jax_metrics(
             aux_values,
             ['total_loss', 'reconstruction_loss', 'quantizer_loss', 'e_latent_loss', 'q_latent_loss',
-             'entropy_loss', 'action_prior_loss', 'action_prior_accuracy'],
+             'entropy_loss', 'action_prior_loss', 'action_prior_accuracy', 'codebook'],
         )
 
         return new_vqvae_train_state, vqvae_metrics, new_qf_train_state, qf_metrics

@@ -69,7 +69,7 @@ class VectorQuantizer(nn.Module):
             jax.nn.initializers.variance_scaling(
                 scale=1.0, mode="fan_in", distribution="uniform"
             ),
-            (self.codebook_size, x.shape[-1]),
+            (self.codebook_size, x.shape[-1]), # (codebook_size, embedding_dim)
         )
         codebook = jnp.asarray(codebook, dtype=jnp.float32)
         distances = jnp.reshape(
@@ -219,6 +219,9 @@ class ActionVQVAE(nn.Module):
 
     def action_prior_logits(self, observations):
         return self.action_prior(observations)
+    
+    def get_codebook(self):
+        return self.vq.get_codebook()
 
     @nn.nowrap
     def rng_keys(self):
@@ -598,9 +601,10 @@ class VQN(object):
 
             codebook = self.vqvae.apply(
                 vqvae_params,
+                # size: (self.codebook_size, embedding_dim)
                 jnp.zeros((1, self.observation_dim)),
                 jnp.zeros((1, self.action_dim)),
-                method=self.vqvae.vq.get_codebook
+                method=self.vqvae.get_codebook
             )
 
             vqvae_loss = vqvae_result_dict['loss']
